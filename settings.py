@@ -1,3 +1,5 @@
+# DEFAULT SETTINGS
+
 FONT = {
     "courier": 'assets/Courier.ttf',
     "elfboy": 'assets/elf-boy.ttf'
@@ -34,5 +36,8 @@ WIN = {
     "icon": IMG["logo"],
     "player_speed": 5,
     "ball_speed": 4,
-    "score_limit": 5
+    "score_limit": 1,
+    "music": True,
+    "player1_name": "Player one",
+    "player2_name": "Player two"
 }

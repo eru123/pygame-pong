@@ -45,6 +45,7 @@ class Ball(Block):
         self.collision_sound = pong.snd_collision
         self.score_sound = pong.snd_score
         self.first_run = True
+        self.music = pong.music
 
     def update(self):
         if self.active:
@@ -56,11 +57,15 @@ class Ball(Block):
 
     def collisions(self):
         if self.rect.top <= 0 or self.rect.bottom >= self.scr_height:
-            pg.mixer.Sound.play(self.collision_sound)
+            if(self.music == True):
+                pg.mixer.Sound.play(self.collision_sound)
+
             self.speed_y *= -1
 
         if pg.sprite.spritecollide(self, self.paddles, False):
-            pg.mixer.Sound.play(self.collision_sound)
+            if(self.music == True):
+                pg.mixer.Sound.play(self.collision_sound)
+
             collision_paddle = pg.sprite.spritecollide(
                 self, self.paddles, False)[0].rect
             if abs(self.rect.right - collision_paddle.left) < 10 and self.speed_x > 0:
@@ -121,6 +126,8 @@ class GameManager:
         self.scr_width = pong.width
         self.scr_height = pong.height
         self.font = pong.fnt1
+        self.player1_name = pong.player1_name
+        self.player2_name = pong.player2_name
 
     def run_game(self):
         self.paddle_group.draw(self.screen)
@@ -133,23 +140,23 @@ class GameManager:
 
     def reset_ball(self):
         if self.ball_group.sprite.rect.right >= self.scr_width:
-            self.p2_score += 1
-            self.direction = 1
-            self.ball_group.sprite.reset_ball()
-        if self.ball_group.sprite.rect.left <= 0:
             self.direction = -1
             self.p1_score += 1
             self.ball_group.sprite.reset_ball()
+        if self.ball_group.sprite.rect.left <= 0:
+            self.direction = 1
+            self.p2_score += 1
+            self.ball_group.sprite.reset_ball()
 
     def draw_score(self):
-        p1_score = self.font.render(
-            str(self.p1_score), True, COLOR['black'])
         p2_score = self.font.render(
-            str(self.p2_score), True,  COLOR['black'])
+            self.player2_name + " - " + str(self.p2_score), True, COLOR['white'])
+        p1_score = self.font.render(
+            self.player1_name + " - " + str(self.p1_score), True,  COLOR['white'])
 
-        p1_score_rect = p1_score.get_rect(
-            midleft=(self.scr_width / 2 + 40, self.scr_height / 2))
         p2_score_rect = p2_score.get_rect(
+            midleft=(self.scr_width / 2 + 40, self.scr_height / 2))
+        p1_score_rect = p1_score.get_rect(
             midright=(self.scr_width / 2 - 40, self.scr_height / 2))
 
         self.screen.blit(p1_score, p1_score_rect)
@@ -169,13 +176,17 @@ class Pong:
         self.player_speed = WIN['player_speed']
         self.fntcourier = FONT['courier']
         self.ball_speed = WIN['ball_speed']
+        self.score_limit = WIN['score_limit']
+        self.music = WIN['music']
+        self.player1_name = WIN['player1_name']
+        self.player2_name = WIN['player2_name']
 
     def run(self):
         self.ball_speed = self.ball_speed, self.ball_speed
 
         pg.init()
 
-        self.fnt1 = pg.font.Font(self.fntcourier, 50)
+        self.fnt1 = pg.font.Font(self.fntcourier, 30)
         self.screen = pg.display.set_mode(self.size)
         self.screen.fill(self.bgcolor)
         logo = pg.image.load(self.icon)
