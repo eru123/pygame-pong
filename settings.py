@@ -30,5 +30,6 @@ WIN = {
     "bgcolor": COLOR["yellow"],
     "bgmusic": AUDIO["bg"],
     "title": "OOP PROJECT",
-    "icon": IMG["logo"]
+    "icon": IMG["logo"],
+    "speed": 5
 }
