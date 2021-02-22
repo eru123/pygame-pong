@@ -29,6 +29,39 @@ class Player(Block):
         self.screen_constrain()
 
 
+class Button():
+    def __init__(self, color, x, y, width, height, text=''):
+        self.color = color
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+
+    def draw(self, win, outline=None, FONT_EXTERNAL=FONT['courier']):
+        # Call this method to draw the button on the screen
+        if outline:
+            pg.draw.rect(win, outline, (self.x-2, self.y -
+                                        2, self.width+4, self.height+4), 0)
+
+        pg.draw.rect(win, self.color, (self.x, self.y,
+                                       self.width, self.height), 0)
+
+        if self.text != '':
+            font = pg.font.Font(FONT_EXTERNAL, 30)
+            text = font.render(self.text, 1, (0, 0, 0))
+            win.blit(text, (self.x + (self.width/2 - text.get_width()/2),
+                            self.y + (self.height/2 - text.get_height()/2)))
+
+    def isOver(self, pos):
+        # Pos is the mouse position or a tuple of (x,y) coordinates
+        if pos[0] > self.x and pos[0] < self.x + self.width:
+            if pos[1] > self.y and pos[1] < self.y + self.height:
+                return True
+
+        return False
+
+
 class Ball(Block):
     def __init__(self, x_pos, y_pos,  pong):
         super().__init__(pong.imgball, x_pos, y_pos)
@@ -175,6 +208,7 @@ class Pong:
         self.imgball = IMG['ball']
         self.player_speed = WIN['player_speed']
         self.fntcourier = FONT['courier']
+        self.fntelfboy = FONT['elfboy']
         self.ball_speed = WIN['ball_speed']
         self.score_limit = WIN['score_limit']
         self.music = WIN['music']
@@ -187,6 +221,7 @@ class Pong:
         pg.init()
 
         self.fnt1 = pg.font.Font(self.fntcourier, 30)
+        self.fnt2 = pg.font.Font(self.fntelfboy, 50)
         self.screen = pg.display.set_mode(self.size)
         self.screen.fill(self.bgcolor)
         logo = pg.image.load(self.icon)
@@ -216,6 +251,9 @@ class Pong:
         self.ball_sprite.add(self.ball)
 
         self.game_mgr = GameManager(self)
+        self.playing = True
+
+        btm = Button(COLOR['yellow'], 200, 200, 400, 80, "Back to Main Menu")
 
         while True:
             self.screen.fill(self.bgcolor)
@@ -223,7 +261,7 @@ class Pong:
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
-                if event.type == pg.KEYDOWN:
+                if self.playing and event.type == pg.KEYDOWN:
                     if event.key == pg.K_UP:
                         self.p1.movement -= self.p1.speed
                     if event.key == pg.K_DOWN:
@@ -232,7 +270,7 @@ class Pong:
                         self.p2.movement -= self.p2.speed
                     if event.key == pg.K_s:
                         self.p2.movement += self.p2.speed
-                if event.type == pg.KEYUP:
+                if self.playing and event.type == pg.KEYUP:
                     if event.key == pg.K_UP:
                         self.p1.movement += self.p1.speed
                     if event.key == pg.K_DOWN:
@@ -242,9 +280,39 @@ class Pong:
                     if event.key == pg.K_s:
                         self.p2.movement -= self.p2.speed
 
-            pg.draw.rect(self.screen, COLOR['black'], self.midline)
-            self.game_mgr.run_game()
+            if self.playing:
+                pg.draw.rect(self.screen, COLOR['black'], self.midline)
+                self.game_mgr.run_game()
+                if self.game_mgr.p1_score >= self.score_limit or self.game_mgr.p2_score >= self.score_limit:
+                    self.playing = False
+
+            else:
+                if self.game_mgr.p1_score >= self.score_limit:
+                    winner_name = self.player1_name
+                else:
+                    winner_name = self.player2_name
+                winner = self.fnt2.render(
+                    winner_name + " Wins", True, COLOR['white'], WIN['pong_bgcolor'])
+                winnerRect = winner.get_rect()
+                winnerRect.center = (400, 100)
+                self.screen.blit(winner, winnerRect)
+
+                btm.draw(self.screen)
+
+                mouse_pos = pg.mouse.get_pos()
+                for event in pg.event.get():
+                    if event.type == pg.MOUSEBUTTONDOWN:
+                        if btm.isOver(mouse_pos):
+                            pg.quit()
+                            sys.exit()
+                    if event.type == pg.MOUSEMOTION:
+                        if btm.isOver(mouse_pos):
+                            btm.color = COLOR['white']
+                        else:
+                            btm.color = COLOR['yellow']
+
             pg.display.flip()
+            pg.display.update()
             self.clock.tick(120)
 
 
