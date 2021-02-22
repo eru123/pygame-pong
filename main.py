@@ -1,11 +1,19 @@
-import sys
 import random
 import pygame
 import pygame_menu
-from pygame.locals import *
 from settings import *
 
+print("************************************")
+print("*        >> PONG GAME <<           *")
+print("*              BY                  *")
+print("*                                  *")
+print("*         JAYVEE TORRES            *")
+print("*          ADDY CASIL              *")
+print("************************************")
 
+
+# For creating game object that will
+# be used for moving objects and collision
 class Block(pygame.sprite.Sprite):
     def __init__(self, path, x_pos, y_pos):
         super().__init__()
@@ -13,6 +21,7 @@ class Block(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(x_pos, y_pos))
 
 
+# Player object for creating paddle game object
 class Player(Block):
     def __init__(self, x_pos, y_pos, pong):
         super().__init__(pong.imgpaddle, x_pos, y_pos)
@@ -31,6 +40,7 @@ class Player(Block):
         self.screen_constrain()
 
 
+# Used to make 'back to main menu' after a game session
 class Button():
     def __init__(self, color, x, y, width, height, text=''):
         self.color = color
@@ -64,8 +74,13 @@ class Button():
         return False
 
 
+# Used to create ball object
 class Ball(Block):
+
+    # Create Ball Object Instance
     def __init__(self, x_pos, y_pos,  pong):
+
+        # Create Block Object Instance
         super().__init__(pong.imgball, x_pos, y_pos)
         speed_x, speed_y = pong.ball_speed
         self.speed_x = speed_x * random.choice((-1, 1))
@@ -82,6 +97,7 @@ class Ball(Block):
         self.first_run = True
         self.music = pong.music
 
+    # Update Ball Position
     def update(self):
         if self.active:
             self.rect.x += self.speed_x
@@ -90,17 +106,27 @@ class Ball(Block):
         else:
             self.restart_counter()
 
+    # Detect Collisions
     def collisions(self):
         if self.rect.top <= 0 or self.rect.bottom >= self.scr_height:
+
+            # Play Collide Sound If music is On
+            # and if the ball is collided to boundaries
             if(self.music == True):
                 pygame.mixer.Sound.play(self.collision_sound)
 
+            # Update Ball Y axis Position
             self.speed_y *= -1
 
         if pygame.sprite.spritecollide(self, self.paddles, False):
+
+            # Play Collide Sound If music is On
+            # and if the ball is collided to Player
             if(self.music == True):
                 pygame.mixer.Sound.play(self.collision_sound)
 
+            # Detect collision from Player and
+            # change trajectory of the ball
             collision_paddle = pygame.sprite.spritecollide(
                 self, self.paddles, False)[0].rect
             if abs(self.rect.right - collision_paddle.left) < 10 and self.speed_x > 0:
@@ -114,6 +140,7 @@ class Ball(Block):
                 self.rect.bottom = collision_paddle.top
                 self.speed_y *= -1
 
+    # Reset Ball Position From the start
     def reset_ball(self):
         if(self.first_run == True):
             self.direction = random.choice((-1, 1))
@@ -126,6 +153,7 @@ class Ball(Block):
         self.rect.center = (self.scr_width / 2, self.scr_height / 2)
         pygame.mixer.Sound.play(self.score_sound)
 
+    # Reset Ball Serving Time Countdown
     def restart_counter(self):
         current_time = pygame.time.get_ticks()
         countdown_number = 3
@@ -151,7 +179,12 @@ class Ball(Block):
         self.screen.blit(time_counter, time_counter_rect)
 
 
+# Object for managing Game Objects, Collisions and Score
 class GameManager:
+
+    # Initialize GameManager
+    # Pass 'pong' variable as parameter
+    # to pass data from Pong() Object
     def __init__(self, pong):
         self.screen = pong.screen
         self.p1_score = 0
@@ -163,6 +196,8 @@ class GameManager:
         self.font = pong.fnt1
         self.player1_name = pong.player1_name
         self.player2_name = pong.player2_name
+        self.score_limit = pong.score_limit
+    # Method to start the game
 
     def run_game(self):
         self.paddle_group.draw(self.screen)
@@ -173,15 +208,25 @@ class GameManager:
         self.reset_ball()
         self.draw_score()
 
+    # Reset Ball Position, Timer, and Update Player Score
     def reset_ball(self):
         if self.ball_group.sprite.rect.right >= self.scr_width:
             self.direction = 1
             self.p1_score += 1
             self.ball_group.sprite.reset_ball()
+
+            if(self.p1_score >= self.score_limit):
+                settings['score_player1'] += 1
+
         if self.ball_group.sprite.rect.left <= 0:
             self.direction = -1
             self.p2_score += 1
             self.ball_group.sprite.reset_ball()
+
+            if(self.p2_score >= self.score_limit):
+                settings['score_player2'] += 1
+
+    # Update Score Board
 
     def draw_score(self):
         p2_score = self.font.render(
@@ -198,8 +243,11 @@ class GameManager:
         self.screen.blit(p2_score, p2_score_rect)
 
 
+# Main Pong Game Object
 class Pong:
+    # Initialize Pong Instance Object
     def __init__(self):
+        # Initialize Configuration and Resources
         self.bgcolor = WIN['pong_bgcolor']
         self.size = self.width, self.height = WIN["width"], WIN["height"]
         self.title = WIN["title"]
@@ -218,55 +266,79 @@ class Pong:
         self.player2_name = WIN['player2_name']
         self.difficulty = None
 
+    # Run pong Game
     def run(self, pg, screen):
+
+        # Set initialized screen object from
+        # pygame to be used by pong window
         self.screen = screen
+
+        # Set defficulty
         if(self.difficulty != None and self.difficulty > 0):
+            # Dificulty value is multiplied by 2 as Ball speed
             self.ball_speed = self.difficulty * 2
 
+        # Set Ball Speed
         self.ball_speed = self.ball_speed, self.ball_speed
-        # pygame.init()
 
+        # Initialize Courier Font for Later use
         self.fnt1 = pygame.font.Font(self.fntcourier, 30)
+
+        # Initialize Elf-Boy Font for Later use
         self.fnt2 = pygame.font.Font(self.fntelfboy, 50)
 
-        # self.screen = pygame.display.set_mode(self.size)
-        self.screen.fill(self.bgcolor)
+        # screen config
+        self.screen.fill(self.bgcolor)          # Set Window Background Color
         logo = pygame.image.load(self.icon)
-        pygame.display.set_icon(logo)
-        pygame.display.set_caption(self.title)
+        pygame.display.set_icon(logo)           # Set Window Icon/Logo
+        pygame.display.set_caption(self.title)  # Set Window Title
 
         pygame.mixer.pre_init(44100, -16, 2, 512)
 
+        # get clock object from pygame
         self.clock = pygame.time.Clock()
 
+        # Initialize Sounds to be used
         self.snd_collision = pygame.mixer.Sound(self.sndpong)
         self.snd_score = pygame.mixer.Sound(self.sndscore)
 
+        # Center Line
         self.midline = pygame.Rect(self.width / 2 - 2, 0, 4, self.height)
 
+        # Create Player
         self.p1 = Player(self.width - 20, self.height / 2, self)
         self.p2 = Player(20, self.width / 2, self)
 
+        # Create Paddle Group
+        # For player 1 and player 2
         self.paddle_grp = pygame.sprite.Group()
         self.paddle_grp.add(self.p2)
         self.paddle_grp.add(self.p1)
 
+        # Create Ball Object
         self.ball = Ball(self.width / 2, self.height / 2, self)
 
         self.ball_sprite = pygame.sprite.GroupSingle()
         self.ball_sprite.add(self.ball)
 
+        # Creat GameManager Object
         self.game_mgr = GameManager(self)
         self.playing = True
-
-        btm = Button(COLOR['yellow'], 200, 200, 400, 80, "Back to Main Menu")
-
         self.running = True
 
+        # Back to main Menu Button
+        btm = Button(COLOR['yellow'], 200, 200, 400, 80, "Back to Main Menu")
+
+        # Main Game Loop
         while self.running:
+
+            # Set Game Window Background
             self.screen.fill(self.bgcolor)
+
+            # Get Mouse Position
             mouse_pos = pygame.mouse.get_pos()
 
+            # Event Listener
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
@@ -299,6 +371,8 @@ class Pong:
                     else:
                         btm.color = COLOR['yellow']
 
+            # On finished game session
+            # Show winner name
             if self.playing:
                 pygame.draw.rect(self.screen, COLOR['black'], self.midline)
                 self.game_mgr.run_game()
@@ -313,6 +387,7 @@ class Pong:
                     winner_name = self.player2_name
 
                 try:
+                    # Winner Announcement
                     self.winner = self.fnt2.render(
                         winner_name + " Wins", True, COLOR['white'], WIN['pong_bgcolor'])
                     self.winnerRect = self.winner.get_rect()
@@ -322,21 +397,34 @@ class Pong:
                     btm.draw(self.screen, COLOR['black'])
                 except:
                     break
+
+            # Update Pygame
             pygame.display.update()
+
+            # Game Clock Speed
             self.clock.tick(100)
 
 
+# Configurable Settings by the user/player
 settings = {
     "player1_name": WIN['player1_name'],
     "player2_name": WIN['player2_name'],
     "difficulty": 2,
     "music": WIN['music'],
-    "score_limit": WIN['score_limit']
+    "score_limit": WIN['score_limit'],
+    "score_player1": 0,
+    "score_player2": 0,
+    "theme": pygame_menu.themes.THEME_BLUE
 }
 
+# Initialuize PyGame
 pygame.init()
+
+# Initialize Screen
 surface = pygame.display.set_mode((WIN['width'], WIN['height']))
 
+
+# PyGame Window Configuration
 pygame.display.set_caption(WIN['title'])
 pygame.mixer.music.load(WIN['bgmusic'])
 if settings['music']:
@@ -344,17 +432,22 @@ if settings['music']:
 JAicon = pygame.image.load(WIN['icon'])
 pygame.display.set_icon(JAicon)
 
+
+# Create Pong Game Object
 game = Pong()
 
 
+# Set Difficulty of The Game
 def set_difficulty(value, difficulty):
     settings['difficulty'] = difficulty
 
 
+# Set Player 1 name
 def set_p1name(name):
     settings["player1_name"] = name
 
 
+# Set Music On/Off
 def set_music(name, switch):
     settings['music'] = switch
     if switch == False:
@@ -363,12 +456,22 @@ def set_music(name, switch):
         pygame.mixer.music.play()
 
 
+# Set Max Score Limit
 def set_max_score(name, limit):
     settings['score_limit'] = limit
 
 
+# Set Player 2 name
 def set_p2name(name):
     settings["player2_name"] = name
+
+
+# Theme Switcher
+def change_theme(name, theme):
+    settings['theme'] = theme
+
+# Start The Game method
+# Apply user settings to Game
 
 
 def start_the_game():
@@ -381,25 +484,78 @@ def start_the_game():
     game.run(pygame, surface)
 
 
+# Leader board
 def open_leaderboard():
-    pass
+
+    # Leader Board Dictionary Schema
+    lb = {"1": {"name": "",  "wins": 0},  "2": {"name": "", "wins": 0}}
+
+    # Create Leader Board Data
+    if settings['score_player1'] >= settings['score_player1']:
+        lb["1"]["name"] = settings['player1_name']
+        lb["1"]["wins"] = settings['score_player1']
+        lb["2"]["name"] = settings['player2_name']
+        lb["2"]["wins"] = settings['score_player2']
+    else:
+        lb["2"]["name"] = settings['player1_name']
+        lb["2"]["wins"] = settings['score_player1']
+        lb["1"]["name"] = settings['player2_name']
+        lb["1"]["wins"] = settings['score_player2']
+
+    # Create Leader board window
+    lb_window = menu = pygame_menu.Menu(
+        WIN['height'], WIN['width'], 'LEADERBOARD', theme=settings['theme'])
+    lb_window.add_label("1. " + lb['1']['name'] +
+                        " - " + str(lb['1']['wins']) + " Wins")
+    lb_window.add_label("2. " + lb['2']['name'] +
+                        " - " + str(lb['2']['wins']) + " Wins")
+
+    # Back to main menu
+    lb_window.add_button('BACK', create_main_menu)
+
+    lb_window.mainloop(surface)
 
 
-menu = pygame_menu.Menu(WIN['height'], WIN['width'], 'MAIN MENU',
-                        theme=pygame_menu.themes.THEME_BLUE)
+# Settings Menu Window
+def create_settings_window():
+    cog = pygame_menu.Menu(WIN['height'], WIN['width'],
+                           'SETTINGS', theme=settings['theme'])
 
-menu.add_text_input('Player 1 name :',
-                    default=settings['player1_name'], onchange=set_p1name)
-menu.add_text_input('Player 2 name :',
-                    default=settings['player2_name'], onchange=set_p2name)
-menu.add_selector(
-    'Difficulty: ', [('Normal', 2), ('Hard', 3), ('Easy', 1)], onchange=set_difficulty)
-menu.add_selector(
-    'Music: ', [('On', True), ('Off', False)], onchange=set_music)
-menu.add_selector(
-    'Max Score: ', [('5', 5), ('10', 10), ('20', 20), ('50', 50)], onchange=set_max_score)
-menu.add_button('Play', start_the_game)
-menu.add_button('Leaderboard', open_leaderboard)
-menu.add_button('Quit', pygame_menu.events.EXIT)
+    cog.add_text_input('Player 1 name :',
+                       default=settings['player1_name'], onchange=set_p1name)
+    cog.add_text_input('Player 2 name :',
+                       default=settings['player2_name'], onchange=set_p2name)
+    cog.add_selector(
+        'Difficulty: ', [('Normal', 2), ('Hard', 3), ('Easy', 1)], onchange=set_difficulty)
+    cog.add_selector(
+        'Music: ', [('On', True), ('Off', False)], onchange=set_music)
+    cog.add_selector(
+        'Max Score: ', [('5', 5), ('10', 10), ('20', 20), ('50', 50)], onchange=set_max_score)
+    cog.add_selector('Theme: ', [
+        ('BLUE', pygame_menu.themes.THEME_BLUE),
+        ('DARK', pygame_menu.themes.THEME_DARK),
+        ('GREEN', pygame_menu.themes.THEME_GREEN),
+        ('ORANGE', pygame_menu.themes.THEME_ORANGE),
+        ('SOLARIZED', pygame_menu.themes.THEME_SOLARIZED),
+    ], onchange=change_theme)
 
-menu.mainloop(surface)
+    # Back to main menu
+    # Apply theme if changed
+    cog.add_button('BACK', create_main_menu)
+
+    cog.mainloop(surface)
+
+
+# Main menu window
+def create_main_menu():
+    menu = pygame_menu.Menu(
+        WIN['height'], WIN['width'], 'MAIN MENU', theme=settings['theme'])
+    menu.add_button('PLAY', start_the_game)
+    menu.add_button('LEADERBOARD', open_leaderboard)
+    menu.add_button('SETTINGS', create_settings_window)
+    menu.add_button('EXIT', pygame_menu.events.EXIT)
+    menu.mainloop(surface)
+
+
+# Start Main Menu WIndow
+create_main_menu()
