@@ -14,7 +14,7 @@ class Block(pg.sprite.Sprite):
 class Player(Block):
     def __init__(self, x_pos, y_pos, pong):
         super().__init__(pong.imgpaddle, x_pos, y_pos)
-        self.speed = pong.speed
+        self.speed = pong.player_speed
         self.movement = 0
         self.screen_height = pong.height
 
@@ -43,6 +43,8 @@ class Ball(Block):
         self.scr_width = pong.width
         self.scr_height = pong.height
         self.collision_sound = pong.snd_collision
+        self.score_sound = pong.snd_score
+        self.first_run = True
 
     def update(self):
         if self.active:
@@ -73,12 +75,16 @@ class Ball(Block):
                 self.speed_y *= -1
 
     def reset_ball(self):
+        if(self.first_run == True):
+            self.direction = random.choice((-1, 1))
+            self.first_run = False
+
         self.active = False
-        self.speed_x *= random.choice((-1, 1))
-        self.speed_y *= random.choice((-1, 1))
+        self.speed_x *= self.direction
+        self.speed_y *= self.direction
         self.score_time = pg.time.get_ticks()
-        self.rect.center = (screen_width / 2, screen_height / 2)
-        pg.mixer.Sound.play(score_sound)
+        self.rect.center = (self.scr_width / 2, self.scr_height / 2)
+        pg.mixer.Sound.play(self.score_sound)
 
     def restart_counter(self):
         current_time = pg.time.get_ticks()
@@ -128,8 +134,10 @@ class GameManager:
     def reset_ball(self):
         if self.ball_group.sprite.rect.right >= self.scr_width:
             self.p2_score += 1
+            self.direction = 1
             self.ball_group.sprite.reset_ball()
         if self.ball_group.sprite.rect.left <= 0:
+            self.direction = -1
             self.p1_score += 1
             self.ball_group.sprite.reset_ball()
 
@@ -150,7 +158,7 @@ class GameManager:
 
 class Pong:
     def __init__(self):
-        self.bgcolor = COLOR["blue"]
+        self.bgcolor = WIN['pong_bgcolor']
         self.size = self.width, self.height = WIN["width"], WIN["height"]
         self.title = WIN["title"]
         self.icon = WIN["icon"]
@@ -158,11 +166,13 @@ class Pong:
         self.sndscore = AUDIO['score']
         self.imgpaddle = IMG['paddle']
         self.imgball = IMG['ball']
-        self.speed = WIN['speed']
+        self.player_speed = WIN['player_speed']
         self.fntcourier = FONT['courier']
-        self.ball_speed = 4, 4
+        self.ball_speed = WIN['ball_speed']
 
     def run(self):
+        self.ball_speed = self.ball_speed, self.ball_speed
+
         pg.init()
 
         self.fnt1 = pg.font.Font(self.fntcourier, 50)
@@ -172,12 +182,6 @@ class Pong:
         pg.display.set_icon(logo)
         pg.display.set_caption(self.title)
         pg.display.flip()
-        self.running = True
-
-        # while self.running:
-        #     for event in pg.event.get():
-        #         if event.type == pg.QUIT:
-        #             self.running = False
 
         pg.mixer.pre_init(44100, -16, 2, 512)
 

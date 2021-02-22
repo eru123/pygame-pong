@@ -27,9 +27,12 @@ COLOR = {
 WIN = {
     "width": 800,
     "height": 500,
-    "bgcolor": COLOR["yellow"],
+    "pong_bgcolor": COLOR['blue'],  # GAMEPLAY BGCOLOR
+    "bgcolor": COLOR["yellow"],     # MENU
     "bgmusic": AUDIO["bg"],
     "title": "OOP PROJECT",
     "icon": IMG["logo"],
-    "speed": 5
+    "player_speed": 5,
+    "ball_speed": 4,
+    "score_limit": 5
 }
