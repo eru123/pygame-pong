@@ -30,13 +30,19 @@ class Player(Block):
 
 
 class Ball(Block):
-    def __init__(self, path, x_pos, y_pos, speed_x, speed_y, paddles):
-        super().__init__(path, x_pos, y_pos)
+    def __init__(self, x_pos, y_pos,  pong):
+        super().__init__(pong.imgball, x_pos, y_pos)
+        speed_x, speed_y = pong.ball_speed
         self.speed_x = speed_x * random.choice((-1, 1))
         self.speed_y = speed_y * random.choice((-1, 1))
-        self.paddles = paddles
+        self.paddles = pong.paddle_grp
         self.active = False
         self.score_time = 0
+        self.font = pong.fnt1
+        self.screen = pong.screen
+        self.scr_width = pong.width
+        self.scr_height = pong.height
+        self.collision_sound = pong.snd_collision
 
     def update(self):
         if self.active:
@@ -47,12 +53,12 @@ class Ball(Block):
             self.restart_counter()
 
     def collisions(self):
-        if self.rect.top <= 0 or self.rect.bottom >= screen_height:
-            pg.mixer.Sound.play(collision_sound)
+        if self.rect.top <= 0 or self.rect.bottom >= self.scr_height:
+            pg.mixer.Sound.play(self.collision_sound)
             self.speed_y *= -1
 
         if pg.sprite.spritecollide(self, self.paddles, False):
-            pg.mixer.Sound.play(collision_sound)
+            pg.mixer.Sound.play(self.collision_sound)
             collision_paddle = pg.sprite.spritecollide(
                 self, self.paddles, False)[0].rect
             if abs(self.rect.right - collision_paddle.left) < 10 and self.speed_x > 0:
@@ -91,12 +97,12 @@ class Ball(Block):
         if current_time - self.score_time >= 4000:
             self.active = True
 
-        time_counter = font.render(
-            str(countdown_number), True, extra_color)
+        time_counter = self.font.render(
+            str(countdown_number), True, COLOR['black'])
         time_counter_rect = time_counter.get_rect(
-            center=(screen_width / 2, screen_height / 2 + 50))
-        pg.draw.rect(screen, blue, time_counter_rect)
-        screen.blit(time_counter, time_counter_rect)
+            center=(self.scr_width / 2, self.scr_height / 2 + 50))
+        pg.draw.rect(self.screen, COLOR['blue'], time_counter_rect)
+        self.screen.blit(time_counter, time_counter_rect)
 
 
 class GameManager:
@@ -106,6 +112,9 @@ class GameManager:
         self.p2_score = 0
         self.ball_group = pong.ball_sprite
         self.paddle_group = pong.paddle_grp
+        self.scr_width = pong.width
+        self.scr_height = pong.height
+        self.font = pong.fnt1
 
     def run_game(self):
         self.paddle_group.draw(self.screen)
@@ -117,7 +126,7 @@ class GameManager:
         self.draw_score()
 
     def reset_ball(self):
-        if self.ball_group.sprite.rect.right >= screen_width:
+        if self.ball_group.sprite.rect.right >= self.scr_width:
             self.p2_score += 1
             self.ball_group.sprite.reset_ball()
         if self.ball_group.sprite.rect.left <= 0:
@@ -125,18 +134,18 @@ class GameManager:
             self.ball_group.sprite.reset_ball()
 
     def draw_score(self):
-        p1_score = font.render(
-            str(self.p1_score), True, extra_color)
-        p2_score = font.render(
-            str(self.p2_score), True, extra_color)
+        p1_score = self.font.render(
+            str(self.p1_score), True, COLOR['black'])
+        p2_score = self.font.render(
+            str(self.p2_score), True,  COLOR['black'])
 
         p1_score_rect = p1_score.get_rect(
-            midleft=(screen_width / 2 + 40, screen_height / 2))
+            midleft=(self.scr_width / 2 + 40, self.scr_height / 2))
         p2_score_rect = p2_score.get_rect(
-            midright=(screen_width / 2 - 40, screen_height / 2))
+            midright=(self.scr_width / 2 - 40, self.scr_height / 2))
 
-        screen.blit(p1_score, p1_score_rect)
-        screen.blit(p2_score, p2_score_rect)
+        self.screen.blit(p1_score, p1_score_rect)
+        self.screen.blit(p2_score, p2_score_rect)
 
 
 class Pong:
@@ -150,10 +159,13 @@ class Pong:
         self.imgpaddle = IMG['paddle']
         self.imgball = IMG['ball']
         self.speed = WIN['speed']
+        self.fntcourier = FONT['courier']
+        self.ball_speed = 4, 4
 
     def run(self):
         pg.init()
 
+        self.fnt1 = pg.font.Font(self.fntcourier, 50)
         self.screen = pg.display.set_mode(self.size)
         self.screen.fill(self.bgcolor)
         logo = pg.image.load(self.icon)
@@ -176,14 +188,14 @@ class Pong:
 
         self.midline = pg.Rect(self.width / 2 - 2, 0, 4, self.height)
 
-        self.p1 = Player(self.width - 20, self.height / 2, self.speed)
+        self.p1 = Player(self.width - 20, self.height / 2, self)
         self.p2 = Player(20, self.width / 2, self)
 
         self.paddle_grp = pg.sprite.Group()
         self.paddle_grp.add(self.p2)
         self.paddle_grp.add(self.p1)
 
-        self.ball = Ball(self.imgball, self.width / 2, self.height / 2, 4, 4, self.paddle_grp)
+        self.ball = Ball(self.width / 2, self.height / 2, self)
 
         self.ball_sprite = pg.sprite.GroupSingle()
         self.ball_sprite.add(self.ball)
@@ -191,6 +203,7 @@ class Pong:
         self.game_mgr = GameManager(self)
 
         while True:
+            self.screen.fill(self.bgcolor)
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
