@@ -1,24 +1,34 @@
-# WINDOW
-WIN_WIDTH = 800
-WIN_HEIGHT = 500
-WIN_SIZE = WIN_WIDTH, WIN_HEIGHT    # Window Size
-WIN_TITLE = 'OOP PROJECT'           # Window Title
+FONT = {
+    "courier": 'assets/Courier.ttf',
+    "elfboy": 'assets/elf-boy.ttf'
+}
 
-# COLORS
-CLR_EXTRA = (0, 0, 0)
-CLR_BG = (255, 181, 0)
-CLR_BLUE = (2, 38, 41)
-CLR_RED = (255, 0, 0)
-CLR_BLACK = (0, 0, 0)
-CLR_WHITE = (255, 255, 255)
+AUDIO = {
+    "bg": 'assets/bgfor2d.mp3',
+    "collision": 'assets/collision.ogg',
+    "pong": 'assets/pong.ogg',
+    "score": 'assets/score.ogg'
+}
 
-# PATH
-IMG_ICO = 'assets/JAlogo.png'
-IMG_BALL = 'assets/Ball.png'
-IMG_PADDLE = 'assets/Paddle.jpg'
-FNT_ELFBOY = 'assets/elf-boy.ttf'
-FNT_COURIER = 'assets/Courier.ttf'
-AUD_BGM = 'assets/bgfor2d.mp3'
-AUD_COLLISION = 'assets/collision.ogg'
-AUD_PONG = 'assets/pong.ogg'
-AUD_SCORE = 'assets/core.ogg'
+IMG = {
+    "ball": 'assets/Ball.png',
+    "logo": 'assets/JAlogo.png',
+    "paddle": 'assets/Paddle.jpg',
+}
+
+COLOR = {
+    "black": (0, 0, 0),
+    "white": (255, 255, 255),
+    "red": (255, 0, 0),
+    "blue": (2, 38, 41),
+    "yellow": (255, 181, 0)
+}
+
+WIN = {
+    "width": 800,
+    "height": 500,
+    "bgcolor": COLOR["yellow"],
+    "bgmusic": AUDIO["bg"],
+    "title": "OOP PROJECT",
+    "icon": IMG["logo"]
+}
