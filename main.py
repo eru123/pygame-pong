@@ -100,8 +100,8 @@ class Ball(Block):
         self.scr_height = pong.height
         self.collision_sound = pong.snd_collision
         self.score_sound = pong.snd_score
-        self.first_run = True
         self.music = pong.music
+        self.direction = random.choice((-1, 1))
 
     # Update Ball Position
     def update(self):
@@ -148,13 +148,9 @@ class Ball(Block):
 
     # Reset Ball Position From the start
     def reset_ball(self):
-        if(self.first_run == True):
-            self.direction = random.choice((-1, 1))
-            self.first_run = False
-
         self.active = False
         self.speed_x *= self.direction
-        self.speed_y *= self.direction
+        self.speed_y *= random.choice((-1, 1))
         self.score_time = pygame.time.get_ticks()
         self.rect.center = (self.scr_width / 2, self.scr_height / 2)
 
@@ -222,9 +218,6 @@ class GameManager:
             self.p1_score += 1
             self.ball_group.sprite.reset_ball()
 
-            # Set the trajectory of the ball
-            self.direction = 1
-
             if(self.p1_score >= self.score_limit):
                 settings['score_player1'] += 1
 
@@ -232,11 +225,13 @@ class GameManager:
             self.p2_score += 1
             self.ball_group.sprite.reset_ball()
 
-            # Set the trajectory of the ball
-            self.direction = -1
-
             if(self.p2_score >= self.score_limit):
                 settings['score_player2'] += 1
+
+        # Change to 1 to set the ball trajectory
+        # to player who lose the ball
+        # Change to -1 to set the ball trajectory to scorer
+        self.ball_group.sprite.direction = 1
 
     # Update Score Board
 
