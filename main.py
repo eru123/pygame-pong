@@ -570,8 +570,8 @@ def create_about_window():
 
 def create_help_window():
     help_text = "TUTORIAL\n" \
-        "\nPLAYER 1 CONTROL:\npress W key to move up\npress S key to move up\n" \
-        "\nPLAYER 2 CONTROL:\npress UP key to move up\npress DOWN key to move up\n"\
+        "\nPLAYER 1 CONTROL:\npress W key to move up\npress S key to move down\n" \
+        "\nPLAYER 2 CONTROL:\npress UP key to move up\npress DOWN key to move down\n"\
         "\nMECHANICS:\n"\
         "This game has two players.\n" \
         "It consist of two paddle \n" \
