@@ -16,7 +16,10 @@ print("************************************")
 # be used for moving objects and collision
 class Block(pygame.sprite.Sprite):
     def __init__(self, path, x_pos, y_pos):
+
+        # Initialize Sprite
         super().__init__()
+
         self.image = pygame.image.load(path)
         self.rect = self.image.get_rect(center=(x_pos, y_pos))
 
@@ -24,17 +27,20 @@ class Block(pygame.sprite.Sprite):
 # Player object for creating paddle game object
 class Player(Block):
     def __init__(self, x_pos, y_pos, pong):
+        # Initialize Block Object as Parent Class
         super().__init__(pong.imgpaddle, x_pos, y_pos)
         self.speed = pong.player_speed
         self.movement = 0
         self.screen_height = pong.height
 
+    # Maintain Player Position
     def screen_constrain(self):
         if self.rect.top <= 0:
             self.rect.top = 0
         if self.rect.bottom >= self.screen_height:
             self.rect.bottom = self.screen_height
 
+    # Update Position
     def update(self, ball_group):
         self.rect.y += self.movement
         self.screen_constrain()
@@ -151,7 +157,9 @@ class Ball(Block):
         self.speed_y *= self.direction
         self.score_time = pygame.time.get_ticks()
         self.rect.center = (self.scr_width / 2, self.scr_height / 2)
-        pygame.mixer.Sound.play(self.score_sound)
+
+        if(self.music == True):
+            pygame.mixer.Sound.play(self.score_sound)
 
     # Reset Ball Serving Time Countdown
     def restart_counter(self):
@@ -211,17 +219,21 @@ class GameManager:
     # Reset Ball Position, Timer, and Update Player Score
     def reset_ball(self):
         if self.ball_group.sprite.rect.right >= self.scr_width:
-            self.direction = 1
             self.p1_score += 1
             self.ball_group.sprite.reset_ball()
+
+            # Set the trajectory of the ball
+            self.direction = 1
 
             if(self.p1_score >= self.score_limit):
                 settings['score_player1'] += 1
 
         if self.ball_group.sprite.rect.left <= 0:
-            self.direction = -1
             self.p2_score += 1
             self.ball_group.sprite.reset_ball()
+
+            # Set the trajectory of the ball
+            self.direction = -1
 
             if(self.p2_score >= self.score_limit):
                 settings['score_player2'] += 1
@@ -503,7 +515,7 @@ def open_leaderboard():
         lb["1"]["wins"] = settings['score_player2']
 
     # Create Leader board window
-    lb_window = menu = pygame_menu.Menu(
+    lb_window = pygame_menu.Menu(
         WIN['height'], WIN['width'], 'LEADERBOARD', theme=settings['theme'])
     lb_window.add_label("1. " + lb['1']['name'] +
                         " - " + str(lb['1']['wins']) + " Wins")
