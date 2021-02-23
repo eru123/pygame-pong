@@ -552,14 +552,51 @@ def create_settings_window():
 
     cog.mainloop(surface)
 
+# About Menu
+
+
+def create_about_window():
+    about_text = "PONG GAME\nVersion 1.0\n\n"\
+        "DEVELOPERS:\n"\
+        "Jayvee Torres\n"\
+        "Addy Casil\n"
+
+    about = pygame_menu.Menu(
+        WIN['height'], WIN['width'], 'ABOUT', theme=settings['theme'])
+    about.add_label(about_text)
+    about.add_button('BACK', create_main_menu)
+    about.mainloop(surface)
+
+
+def create_help_window():
+    help_text = "TUTORIAL\n" \
+        "\nPLAYER 1 CONTROL:\npress W key to move up\npress S key to move up\n" \
+        "\nPLAYER 2 CONTROL:\npress UP key to move up\npress DOWN key to move up\n"\
+        "\nMECHANICS:\n"\
+        "This game has two players.\n" \
+        "It consist of two paddle \n" \
+        "and a ball.The two players\n" \
+        "should back bounce the ball\n" \
+        "to their opponent using\n" \
+        "their paddle to score\n"
+
+    instruction = pygame_menu.Menu(
+        WIN['height'], WIN['width'], 'HELP', theme=settings['theme'])
+    instruction.add_label(help_text)
+    instruction.add_button('BACK', create_main_menu)
+    instruction.mainloop(surface)
 
 # Main menu window
+
+
 def create_main_menu():
     menu = pygame_menu.Menu(
         WIN['height'], WIN['width'], 'MAIN MENU', theme=settings['theme'])
     menu.add_button('PLAY', start_the_game)
     menu.add_button('LEADERBOARD', open_leaderboard)
     menu.add_button('SETTINGS', create_settings_window)
+    menu.add_button('HELP', create_help_window)
+    menu.add_button('ABOUT', create_about_window)
     menu.add_button('EXIT', pygame_menu.events.EXIT)
     menu.mainloop(surface)
 
