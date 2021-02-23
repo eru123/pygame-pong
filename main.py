@@ -533,7 +533,7 @@ def create_settings_window():
     cog.add_text_input('Player 2 name :',
                        default=settings['player2_name'], onchange=set_p2name)
     cog.add_selector(
-        'Difficulty: ', [('Normal', 2), ('Hard', 3), ('Easy', 1)], onchange=set_difficulty)
+        'Difficulty: ', [('Normal', 2), ('Hard', 3), ('Extra Hard', 4), ('Super Human', 5), ('Easy', 1)], onchange=set_difficulty)
     cog.add_selector(
         'Music: ', [('On', True), ('Off', False)], onchange=set_music)
     cog.add_selector(
